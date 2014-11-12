@@ -24,8 +24,8 @@ function love.load()
     joystick = joysticks[1]
 	love.window.setMode(960, 320)
 	Collider = HC(100, on_collision, collision_stop)
-	
-	
+
+
     worldspeed = 100
 	worldacceleration = 50
     --playerspeed = 100
@@ -36,15 +36,15 @@ function love.load()
         x = 70,
         y = 200,
         r = 15,
-        v = jumpspeed, 
+        v = jumpspeed,
 		height = 24,
-		width = 24, 
+		width = 24,
 		dir = 1,
 		can_jump = false,
 		double_jumping = false
     }
 	player.collider = Collider:addRectangle(player.x+player.width/2, player.y+player.height/2, 12, 14)
-	
+
 	stars = {}
     max_stars = 200
 	for i=1, max_stars do   -- generate the coords of our stars
@@ -52,12 +52,12 @@ function love.load()
          local y = math.random(0, ground)   -- both coords are limited to the screen size, minus 5 pixels of padding
          stars[i] = {x, y}   -- stick the values into the table
      end
-	 
+
 	 obstacles = {}
-	 generation_timer = 0   
+	 generation_timer = 0
 end
 
-function love.update(dt)	
+function love.update(dt)
 	generation_timer = generation_timer+dt
 	if generation_timer >= 1 then
 		generation_timer = generation_timer - 1
@@ -72,7 +72,7 @@ function love.update(dt)
         player.y = ground - player.r
         player.v = 0
     end
-	
+
 	for i=1, #obstacles do
 		for j=1, obstacles[i].n do
 			shape = obstacles[i].shape[j]
@@ -80,10 +80,10 @@ function love.update(dt)
 			shape.position[1] = shape.position[1] - dt*worldspeed*player.dir
 		end
 	end
-	
+
 	Collider:update(dt)
 
-	for i=1, #stars do   
+	for i=1, #stars do
 		--x = stars[i]
 		stars[i][1] = stars[i][1] - dt*worldspeed*player.dir
 		if(stars[i][1] < -100) then
@@ -94,19 +94,19 @@ function love.update(dt)
 	if worldspeed < 100 then
 		worldacceleration = 50
 	elseif worldspeed < 250 then
-		worldacceleration = 30 
+		worldacceleration = 30
 	elseif worldspeed < 400 then
 		worldacceleration = 20
-	elseif worldspeed < 800 then 
+	elseif worldspeed < 800 then
 		worldacceleration = 10
 	end
-	
+
 	if worldspeed < 800 then
 		worldspeed = worldspeed + worldacceleration*dt
 	end
-	
+
 	local time = love.timer.getTime()
-	
+
     if((joystick ~= nil and joystick:isGamepadDown("a")) or love.keyboard.isDown(" ") )then --and player.v == 0) then
         if timer_start == nil or (time-timer_start)*1000 < timer_limit then
 			if timer_start == nil then
@@ -126,7 +126,7 @@ function love.update(dt)
         --current_animation = walk_animation
 	end
 	player.collider:moveTo(player.x+player.width/2, player.y+player.height/2)
-    --current_animation:update(dt) 
+    --current_animation:update(dt)
 end
 
 
@@ -142,8 +142,8 @@ function love.draw()
 	for i=1, #stars do   -- loop through all of our stars
 		love.graphics.point(stars[i][1], stars[i][2])   -- draw each point
 	end
-	
-	 
+
+
  	for i=1, #obstacles do
 		for j=1, obstacles[i].n do
 			shape = obstacles[i].shape[j]
@@ -157,7 +157,7 @@ function love.draw()
 		    love.graphics.setColor(255, 255, 255)
 		end
  	end
-	
+
 	-- draw game infos
 	love.graphics.print("Current world speed: "..tostring(worldspeed), 6, 10)
 	love.graphics.print("Current world acceleration: "..tostring(worldacceleration), 6, 30)
@@ -168,7 +168,7 @@ end
 function load_sprites()
     p1_spritesheet = love.image.newImageData("p1_spritesheet.png")
     p1_coordinates = {}
-    
+
     file = love.filesystem.newFile("p1_spritesheet.txt")
     file:open("r")
     lines = file:lines()
@@ -177,13 +177,13 @@ function load_sprites()
         p1_coordinates[key] = {p1, p2, p3, p4}
     end
 
-        
+
     p1_walk_sprites = love.image.newImageData(11*72, 97)
     walk_names = { "p1_walk01", "p1_walk02", "p1_walk03", "p1_walk04", "p1_walk05", "p1_walk06", "p1_walk07", "p1_walk08", "p1_walk09", "p1_walk10", "p1_walk11" }
 
     for i=1, #walk_names do
         name = walk_names[i]
-        local sx, sy, sw, sh = (p1_coordinates[name])[1], (p1_coordinates[name])[2],(p1_coordinates[name])[3], (p1_coordinates[name])[4] 
+        local sx, sy, sw, sh = (p1_coordinates[name])[1], (p1_coordinates[name])[2],(p1_coordinates[name])[3], (p1_coordinates[name])[4]
         print(sx, sy, sw, sh)
         p1_walk_sprites:paste(p1_spritesheet, 72*(i-1), 0, sx, sy, sw, sh)
     end

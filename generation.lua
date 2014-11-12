@@ -18,9 +18,17 @@ end
 
 function generate_spikes(player, worldspeed)
 	local obstacle = {}
-	local spikes = Collider:addRectangle(love.window.getWidth()*2, 300+player.r, 50, 10)
-	obstacle.shape = spikes
-	obstacle.type = "spikes"
+	obstacle.type = {}
+	obstacle.shape = {}
+	obstacle.color = {}
+	obstacle.position = {}
+	local spikes = Collider:addRectangle(love.window.getWidth()*2, 300, 50, 10)
+	n = 1
+	obstacle.n = n
+	obstacle.type[n] = "spikes"
+	obstacle.shape[n] = spikes
+	obstacle.color[n] = "red"
+	obstacle.position[n] = {love.window.getWidth()*2, 300, 50, 10}
 	return obstacle
 end
 

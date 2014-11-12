@@ -69,7 +69,10 @@ function love.update(dt)
 	
 	--print(#obstacles)
 	for i=1, #obstacles do
-		obstacles[i].shape:move(-dt*worldspeed, 0)
+		for j=1, obstacles[i].n do
+			obstacles[i].shape[j]:move(-dt*worldspeed, 0)
+			obstacles[i].position[j][1] = obstacles[i].position[j][1] - dt*worldspeed
+		end
 	end
 	
 	Collider:update(dt)
@@ -127,8 +130,7 @@ function love.update(dt)
 		end
 		timer_start = nil
         --current_animation = walk_animation
-    end
-	
+	end
 	player.collider:moveTo(player.x+player.width/2, player.y+player.height/2)
     --current_animation:update(dt) 
 end
@@ -151,7 +153,16 @@ function love.draw()
 	 
  	for i=1, #obstacles do
 		--print("obstacle at:", obstacles[i].shape:center())
- 		obstacles[i].shape:draw('fill')
+		for j=1, obstacles[i].n do
+ 			obstacles[i].shape[j]:draw('line')
+		    love.graphics.setColor(200, 20, 20)
+			local x = obstacles[i].position[j][1]
+			local y = obstacles[i].position[j][2]
+			local w = obstacles[i].position[j][3]
+			local h = obstacles[i].position[j][4]
+			love.graphics.rectangle("fill", x, y, w, h)
+		    love.graphics.setColor(255, 255, 255)
+		end
  	end
 end
 

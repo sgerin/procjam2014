@@ -8,8 +8,8 @@ function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
 	print("collision")
 	if shape_a == player.collider or shape_b == player.collider then
 		if shape_a.obstacle_type == "wall" or shape_b.obstacle_type == "wall" then
-			worldspeed = worldspeed * 2/3
-			player.dir = -player.dir
+			--worldspeed = worldspeed * 2/3
+			--player.dir = -player.dir
 		end
 	end
 end
@@ -24,7 +24,6 @@ function love.load()
     joystick = joysticks[1]
 	love.window.setMode(960, 320)
 	Collider = HC(100, on_collision, collision_stop)
-	
 	
     worldspeed = 100
 	worldacceleration = 50
@@ -41,7 +40,7 @@ function love.load()
 		width = 24, 
 		dir = 1,
 		can_jump = false,
-		double_jumping = false
+		can_doublejump = false, 
     }
 	player.collider = Collider:addRectangle(player.x+player.width/2, player.y+player.height/2, 12, 14)
 	
@@ -64,11 +63,12 @@ function love.update(dt)
 		obstacle = generate_obstacles(player, worldspeed)
 		obstacles[#obstacles+1] = obstacle
 	end
-    if player.v ~= 0 then
-        player.v = player.v + (dt * gravity)
-        player.y = player.y + (player.v * dt)
+	
+    if player.v ~= 0 then -- if the player vertical velocity (which is negative when jumping) is different from zero then 
+        player.v = player.v + (dt * gravity) -- we increase it (getting it to zero)
+        player.y = player.y + (player.v * dt) -- and change the player vertical position (upward if player.v < 0 and downward otherwise)
     end
-    if player.y > ground - player.r then
+    if player.y > ground - player.r then -- put the player on ground if he's under it
         player.y = ground - player.r
         player.v = 0
     end

@@ -6,6 +6,12 @@ Timer = require "hump.timer"
 
 function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
 	print("collision")
+	if shape_a == player.collider or shape_b == player.collider then
+		if shape_a.obstacle_type == "wall" or shape_b.obstacle_type == "wall" then
+			worldspeed = worldspeed * 2/3
+			player.dir = -player.dir
+		end
+	end
 end
 
 function collision_stop(dt, shape_a, shape_b)
@@ -13,30 +19,30 @@ function collision_stop(dt, shape_a, shape_b)
 end
 
 function love.load()
-    local joysticks = love.joystick.getJoysticks()
+	-- joystick, window and collider init
+	local joysticks = love.joystick.getJoysticks()
     joystick = joysticks[1]
-	
 	love.window.setMode(960, 320)
-	
-	--load_sprites()
-	
 	Collider = HC(100, on_collision, collision_stop)
+	
 	
     worldspeed = 100
 	worldacceleration = 50
-    playerspeed = 100
+    --playerspeed = 100
     jumpspeed = 300
     ground = 300 -- height of ground
     gravity = 700
     player = {
-        x = 40,
+        x = 70,
         y = 200,
         r = 15,
         v = jumpspeed, 
 		height = 24,
-		width = 24
+		width = 24, 
+		dir = 1,
+		can_jump = false,
+		double_jumping = false
     }
-	
 	player.collider = Collider:addRectangle(player.x+player.width/2, player.y+player.height/2, 12, 14)
 	
 	stars = {}
@@ -53,9 +59,9 @@ end
 
 function love.update(dt)	
 	generation_timer = generation_timer+dt
-	if generation_timer >= 2 then
-		generation_timer = generation_timer - 2
-		obstacle = generate_obstacles("spikes", player, worldspeed)
+	if generation_timer >= 1 then
+		generation_timer = generation_timer - 1
+		obstacle = generate_obstacles(player, worldspeed)
 		obstacles[#obstacles+1] = obstacle
 	end
     if player.v ~= 0 then
@@ -67,11 +73,11 @@ function love.update(dt)
         player.v = 0
     end
 	
-	--print(#obstacles)
 	for i=1, #obstacles do
 		for j=1, obstacles[i].n do
-			obstacles[i].shape[j]:move(-dt*worldspeed, 0)
-			obstacles[i].position[j][1] = obstacles[i].position[j][1] - dt*worldspeed
+			shape = obstacles[i].shape[j]
+			shape:move(-dt*worldspeed*player.dir, 0)
+			shape.position[1] = shape.position[1] - dt*worldspeed*player.dir
 		end
 	end
 	
@@ -79,8 +85,8 @@ function love.update(dt)
 
 	for i=1, #stars do   
 		--x = stars[i]
-		stars[i][1] = stars[i][1] - dt*worldspeed
-		if(stars[i][1] < 0) then
+		stars[i][1] = stars[i][1] - dt*worldspeed*player.dir
+		if(stars[i][1] < -100) then
 			stars[i][1] = love.graphics.getWidth()--math.random(love.graphics.getWidth(), love.graphics.getWidth())
 		end
     end
@@ -98,18 +104,6 @@ function love.update(dt)
 	if worldspeed < 800 then
 		worldspeed = worldspeed + worldacceleration*dt
 	end
-	
-    --[[if joystick ~= nil and math.abs(joystick:getAxis(1)) > 0.2 then
-        player.x = player.x + dt*joystick:getAxis(1)*playerspeed
-	elseif love.keyboard.isDown("right") then
-		player.x = player.x + dt*playerspeed
-    end
-
-    if joystick ~= nil and math.abs(joystick:getAxis(4)) > 0.2 then
-        player.x = player.x + dt*joystick:getAxis(4)*playerspeed
-	elseif love.keyboard.isDown("left") then
-        player.x = player.x - dt*playerspeed
-    end]]--
 	
 	local time = love.timer.getTime()
 	
@@ -137,33 +131,36 @@ end
 
 
 function love.draw()
+	-- draw horizon
 	love.graphics.line(0, ground, love.graphics.getWidth(), ground)
-    --current_animation:draw(player.x, player.y)
+
+	-- draw player "sprites" and hitbox
 	love.graphics.rectangle("line", player.x, player.y, player.width, player.height)
 	player.collider:draw('fill')
+
 	-- draw stars
 	for i=1, #stars do   -- loop through all of our stars
 		love.graphics.point(stars[i][1], stars[i][2])   -- draw each point
 	end
 	
-	love.graphics.print("Current world speed: "..tostring(worldspeed), 6, 10)
-	love.graphics.print("Current world acceleration: "..tostring(worldacceleration), 6, 30)
-	
-	love.graphics.print("Current player speed: "..tostring(playerspeed), 6, 50)
 	 
  	for i=1, #obstacles do
-		--print("obstacle at:", obstacles[i].shape:center())
 		for j=1, obstacles[i].n do
- 			obstacles[i].shape[j]:draw('line')
+			shape = obstacles[i].shape[j]
+ 			shape:draw('line')
 		    love.graphics.setColor(200, 20, 20)
-			local x = obstacles[i].position[j][1]
-			local y = obstacles[i].position[j][2]
-			local w = obstacles[i].position[j][3]
-			local h = obstacles[i].position[j][4]
+			local x = shape.position[1]
+			local y = shape.position[2]
+			local w = shape.position[3]
+			local h = shape.position[4]
 			love.graphics.rectangle("fill", x, y, w, h)
 		    love.graphics.setColor(255, 255, 255)
 		end
  	end
+	
+	-- draw game infos
+	love.graphics.print("Current world speed: "..tostring(worldspeed), 6, 10)
+	love.graphics.print("Current world acceleration: "..tostring(worldacceleration), 6, 30)
 end
 
 

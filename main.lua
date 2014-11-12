@@ -16,7 +16,9 @@ function love.load()
     local joysticks = love.joystick.getJoysticks()
     joystick = joysticks[1]
 	
-	load_sprites()
+	love.window.setMode(960, 320)
+	
+	--load_sprites()
 	
 	Collider = HC(100, on_collision, collision_stop)
 	
@@ -25,23 +27,23 @@ function love.load()
     playerspeed = 100
     jumpspeed = 300
     ground = 300 -- height of ground
-    gravity = 500
+    gravity = 700
     player = {
         x = 40,
-        y = 300,
+        y = 200,
         r = 15,
         v = jumpspeed, 
-		height = 97,
-		width = 72
+		height = 24,
+		width = 24
     }
 	
-	player_collider = Collider:addRectangle(player.x, player.y, player.width, player.height)
+	player.collider = Collider:addRectangle(player.x+player.width/2, player.y+player.height/2, 12, 14)
 	
 	stars = {}
     max_stars = 200
 	for i=1, max_stars do   -- generate the coords of our stars
          local x = math.random(0, love.graphics.getWidth())   -- generate a "random" number for the x coord of this star
-         local y = math.random(0, love.graphics.getHeight()-ground)   -- both coords are limited to the screen size, minus 5 pixels of padding
+         local y = math.random(0, ground)   -- both coords are limited to the screen size, minus 5 pixels of padding
          stars[i] = {x, y}   -- stick the values into the table
      end
 	 
@@ -90,9 +92,11 @@ function love.update(dt)
 		worldacceleration = 10
 	end
 	
-	worldspeed = worldspeed + worldacceleration*dt
-
-    if joystick ~= nil and math.abs(joystick:getAxis(1)) > 0.2 then
+	if worldspeed < 800 then
+		worldspeed = worldspeed + worldacceleration*dt
+	end
+	
+    --[[if joystick ~= nil and math.abs(joystick:getAxis(1)) > 0.2 then
         player.x = player.x + dt*joystick:getAxis(1)*playerspeed
 	elseif love.keyboard.isDown("right") then
 		player.x = player.x + dt*playerspeed
@@ -102,7 +106,7 @@ function love.update(dt)
         player.x = player.x + dt*joystick:getAxis(4)*playerspeed
 	elseif love.keyboard.isDown("left") then
         player.x = player.x - dt*playerspeed
-    end
+    end]]--
 	
 	local time = love.timer.getTime()
 	
@@ -115,23 +119,26 @@ function love.update(dt)
 			end
 			player.v = -jumpspeed
 		end
-        current_animation = jump_animation
+        --current_animation = jump_animation
 	end
     if(player.v == 0) then
 		if timer_start ~= nil then
 			print(time-timer_start)
 		end
 		timer_start = nil
-        current_animation = walk_animation
+        --current_animation = walk_animation
     end
-    current_animation:update(dt) 
+	
+	player.collider:moveTo(player.x+player.width/2, player.y+player.height/2)
+    --current_animation:update(dt) 
 end
 
 
 function love.draw()
 	love.graphics.line(0, ground, love.graphics.getWidth(), ground)
-    current_animation:draw(player.x, player.y)
-	
+    --current_animation:draw(player.x, player.y)
+	love.graphics.rectangle("line", player.x, player.y, player.width, player.height)
+	player.collider:draw('fill')
 	-- draw stars
 	for i=1, #stars do   -- loop through all of our stars
 		love.graphics.point(stars[i][1], stars[i][2])   -- draw each point

@@ -78,6 +78,7 @@ function love.update(dt)
 			shape = obstacles[i].shape[j]
 			shape:move(-dt*worldspeed*player.dir, 0)
 			shape.position[1] = shape.position[1] - dt*worldspeed*player.dir
+			obstacles[i].shape[j] = shape
 		end
 	end
 	

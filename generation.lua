@@ -1,5 +1,5 @@
 function generate_obstacles(player, worldspeed)
-	local type = math.random(1, 2)
+	local type = math.random(1, 3)
 	if type == 1 then
 		obstacle = generate_walls(player, worldspeed)
 	elseif type == 2 then
@@ -45,18 +45,18 @@ function generate_doublejump_obstacle(player, worldspeed)
 	local width = 10
 
 	local double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-100, 5, 20)
-	double.obstacle_type = "double_j"
-	double.color = "white"
-	double.position = {love.window.getWidth()*2, 10, 50, 10}
+	double_j.obstacle_type = "double_j"
+	double_j.color = "white"
+	double_j.position = {love.window.getWidth()*2, 10, 50, 10}
 	local n = 1
 	obstacle.n = n
 	obstacle.shape[n] = double_j
 
 	double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-160, 5, 20)
-	double.obstacle_type = "double_j"
-	double.color = "white"
-	double.position = {love.window.getWidth()*2, 10, 90, 40}
-	local n = 1
+	double_j.obstacle_type = "double_j"
+	double_j.color = "white"
+	double_j.position = {love.window.getWidth()*2, 10, 90, 40}
+	n = n + 1
 	obstacle.n = n
 	obstacle.shape[n] = double_j
 
@@ -76,11 +76,6 @@ function generate_spikes(player, worldspeed)
 	return obstacle
 end
 
-
-function generate_doublejump_obstacle(player, worldspeed)
-	local obstacle = {}
-	return obstacle
-end
 
 function generate_dash_obstacle(player, worldspeed)
 	local obstacle = {}

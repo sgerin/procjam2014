@@ -44,7 +44,8 @@ function generate_doublejump_obstacle(player, worldspeed)
 	local height = 100
 	local width = 10
 
-	local double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-100, 5, 20)
+	--local double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-100, 5, 20)
+	local double_j = Collider:addRectangle(love.window.getWidth()+100, love.graphics.getHeight()/2+50, 50, 5)	
 	double_j.obstacle_type = "double_j"
 	double_j.color = "white"
 	double_j.position = {love.window.getWidth()*2, 10, 50, 10}
@@ -52,7 +53,8 @@ function generate_doublejump_obstacle(player, worldspeed)
 	obstacle.n = n
 	obstacle.shape[n] = double_j
 
-	double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-160, 5, 20)
+	--double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-160, 5, 20)
+	double_j = Collider:addRectangle(love.window.getWidth(), love.graphics.getHeight()/2+100, 50, 5)
 	double_j.obstacle_type = "double_j"
 	double_j.color = "white"
 	double_j.position = {love.window.getWidth()*2, 10, 90, 40}

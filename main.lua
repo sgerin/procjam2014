@@ -5,9 +5,22 @@ Gamestate = require "hump.gamestate"
 Timer = require "hump.timer"
 
 function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
-	print("collision")
+	--print("collision")
 	if shape_a == player.collider or shape_b == player.collider then
 		if shape_a.obstacle_type == "wall" or shape_b.obstacle_type == "wall" then
+			print("wall")
+			player.dir = -player.dir
+			player.x = player.x + player.dir*dt*worldspeed
+			player.collider:moveTo(player.x+10, player.y+18)
+			player.can_jump = true
+			timer_start = nil
+			Timer.clear()
+			Timer.add(1, function() if player.dir < 0 then player.dir = -player.dir end end)
+			--worldspeed = worldspeed * 2/3
+			--player.dir = -player.dir
+		end
+		if shape_a.obstacle_type == "floor" or shape_b.obstacle_type == "floor" then
+			player.can_jump = true
 			--worldspeed = worldspeed * 2/3
 			--player.dir = -player.dir
 		end
@@ -18,6 +31,13 @@ function collision_stop(dt, shape_a, shape_b)
 	print("collision stop")
 end
 
+function love.keyreleased(key)
+   if key == " " then
+	   print("cant jump")
+	   player.can_jump = false
+   end
+end
+
 function love.load()
 	-- joystick, window and collider init
 	local joysticks = love.joystick.getJoysticks()
@@ -25,6 +45,9 @@ function love.load()
 	love.window.setMode(960, 320)
 	Collider = HC(100, on_collision, collision_stop)
 	
+	bg_scroll_factor = 0.15
+	mg_scroll_factor = 0.4
+	fg_scroll_factor = 1
     worldspeed = 100
 	worldacceleration = 50
     --playerspeed = 100
@@ -39,10 +62,9 @@ function love.load()
 		height = 24,
 		width = 24, 
 		dir = 1,
-		can_jump = false,
-		can_doublejump = false, 
+		can_jump = true,
     }
-	player.collider = Collider:addRectangle(player.x+player.width/2, player.y+player.height/2, 12, 14)
+	player.collider = Collider:addRectangle(player.x+10, player.y+20, 12, 14)
 	
 	stars = {}
     max_stars = 200
@@ -56,7 +78,8 @@ function love.load()
 	 generation_timer = 0   
 end
 
-function love.update(dt)	
+function love.update(dt)
+    Timer.update(dt)
 	generation_timer = generation_timer+dt
 	if generation_timer >= 1 then
 		generation_timer = generation_timer - 1
@@ -86,7 +109,7 @@ function love.update(dt)
 
 	for i=1, #stars do   
 		--x = stars[i]
-		stars[i][1] = stars[i][1] - dt*worldspeed*player.dir
+		stars[i][1] = stars[i][1] - dt*worldspeed*bg_scroll_factor*player.dir
 		if(stars[i][1] < -100) then
 			stars[i][1] = love.graphics.getWidth()--math.random(love.graphics.getWidth(), love.graphics.getWidth())
 		end
@@ -108,7 +131,7 @@ function love.update(dt)
 	
 	local time = love.timer.getTime()
 	
-    if((joystick ~= nil and joystick:isGamepadDown("a")) or love.keyboard.isDown(" ") )then --and player.v == 0) then
+    if(player.can_jump == true and ((joystick ~= nil and joystick:isGamepadDown("a")) or love.keyboard.isDown(" ")))then --and player.v == 0) then
         if timer_start == nil or (time-timer_start)*1000 < timer_limit then
 			if timer_start == nil then
 				timer_start = time
@@ -124,9 +147,10 @@ function love.update(dt)
 			print(time-timer_start)
 		end
 		timer_start = nil
+		player.can_jump= true
         --current_animation = walk_animation
 	end
-	player.collider:moveTo(player.x+player.width/2, player.y+player.height/2)
+	player.collider:moveTo(player.x+10, player.y+18)
     --current_animation:update(dt) 
 end
 

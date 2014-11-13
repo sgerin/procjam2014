@@ -12,8 +12,12 @@ function generate_building(player, worldspeed, previous_building)
 	local max_building = min_building*2
 	local width = math.random(min_building, max_building)
 	
+	print("gap " .. gap)
+	print("width " .. width)
+
+	
 	local y = 300
-	local height = 300
+	local height = 8
 	floor.shape = Collider:addRectangle(x+gap, y, width, height)
 	floor.shape.position = {x+gap, y, width, height}
 	floor.shape.type = "floor"
@@ -43,15 +47,15 @@ function generate_walls(player, worldspeed)
 	local height = 100
 	local width = 10
 	local wall = Collider:addRectangle(x, y, width, height)
-	wall.obstacle_type = "wall"
+	wall.type = "wall"
 	wall.color = {"blue"}
 	wall.position = {x, y, width, height}
 	local n = 1
 	obstacle.n = n
 	obstacle.shape[n] = wall
 
-	wall = Collider:addRectangle(x+70, y+10, width, height+50)
-	wall.obstacle_type = "wall"
+	wall = Collider:addRectangle(x+150, y+10, width, height+50)
+	wall.type = "wall"
 	wall.color = {"blue"}
 	wall.position = {x, y, width, height}
 	n = n + 1
@@ -69,7 +73,7 @@ function generate_doublejump_obstacle(player, worldspeed)
 
 	--local double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-100, 5, 20)
 	local double_j = Collider:addRectangle(love.window.getWidth()+100, love.graphics.getHeight()/2+50, 50, 5)	
-	double_j.obstacle_type = "double_j"
+	double_j.type = "double_j"
 	double_j.color = "white"
 	double_j.position = {love.window.getWidth()*2, 10, 50, 10}
 	local n = 1
@@ -78,7 +82,7 @@ function generate_doublejump_obstacle(player, worldspeed)
 
 	--double_j = Collider:addRectangle(love.window.getWidth()+50, love.graphics.getHeight()/2-160, 5, 20)
 	double_j = Collider:addRectangle(love.window.getWidth(), love.graphics.getHeight()/2+100, 50, 5)
-	double_j.obstacle_type = "double_j"
+	double_j.type = "double_j"
 	double_j.color = "white"
 	double_j.position = {love.window.getWidth()*2, 10, 90, 40}
 	n = n + 1
@@ -92,7 +96,7 @@ function generate_spikes(player, worldspeed)
 	local obstacle = {}
 	obstacle.shape = {}
 	local spikes = Collider:addRectangle(love.window.getWidth()*2, 300, 50, 10)
-	spikes.obstacle_type = "spikes"
+	spikes.type = "spikes"
 	spikes.color = "red"
 	spikes.position = {love.window.getWidth()*2, 300, 50, 10}
 	local n = 1

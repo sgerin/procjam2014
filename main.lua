@@ -6,7 +6,8 @@ Timer = require "hump.timer"
 
 function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
 	if shape_a == player.collider or shape_b == player.collider then
-		if shape_a.obstacle_type == "wall" or shape_b.obstacle_type == "wall" then
+		local shape = (shape_a == player.collider) and shape_b or shape_a
+		if shape.type == "wall" then
 			print("wall")
 			player.dir = -player.dir
 			player.x = player.x + player.dir*dt*worldspeed
@@ -18,25 +19,30 @@ function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
 			--worldspeed = worldspeed * 2/3
 			--player.dir = -player.dir
 		end
-		if shape_a.type == "floor" or shape_b.type == "floor" then
-			local building = shape_a.building or shape_b.building
-	--print(building)
+		if shape.type == "floor" then
+			
+			--print("floor")
+			local building = shape.building
 			if building ~= current_building then 
-				print("changing building")
 				building_changed = true
 			end
 			current_building = building
 			player.can_jump = true
 			timer_start = nil
 			colliding_with_floor = true
+			player.is_jumping = false
 		end		
 	end
 end
 
 function collision_stop(dt, shape_a, shape_b)
 	if shape_a == player.collider or shape_b == player.collider then
-		if shape_a.type == "floor" or shape_b.type == "floor" then
+		local shape = (shape_a == player.collider) and shape_b or shape_a
+		if shape.type == "floor" then
 			colliding_with_floor = false
+			if player.is_jumping == false then
+				player.v = jumpspeed
+			end
 		end
 	end
 end
@@ -61,7 +67,6 @@ function love.load()
     worldspeed = 100
 	worldacceleration = 50
     jumpspeed = 300
-    ground = 300 -- height of ground
     gravity = 700
     player = {
         x = 70,
@@ -80,7 +85,7 @@ function love.load()
     max_stars = 200
 	for i=1, max_stars do   -- generate the coords of our stars
          local x = math.random(0, love.graphics.getWidth())   -- generate a "random" number for the x coord of this star
-         local y = math.random(0, ground)   -- both coords are limited to the screen size, minus 5 pixels of padding
+         local y = math.random(0, 300)   -- both coords are limited to the screen size, minus 5 pixels of padding
          stars[i] = {x, y}   -- stick the values into the table
      end
 	 
@@ -102,7 +107,6 @@ function love.update(dt)
 		building_changed = false
 	end
 	
-	print(#buildings)
 	--generation_timer = generation_timer+dt
 	if generation_timer >= 1 then
 		generation_timer = generation_timer - 1
@@ -115,7 +119,8 @@ function love.update(dt)
         player.y = player.y + (player.v * dt) -- and change the player vertical position (upward if player.v < 0 and downward otherwise)
 	end
 	if colliding_with_floor and player.v > 0 then
-        player.y = ground
+        player.y = current_building.shape.position[2] - player.height
+		print("player.y " .. player.y)
         player.v = 0
     end
 	if player.y > love.window.getHeight() then
@@ -190,9 +195,6 @@ end
 
 
 function love.draw()
-	-- draw horizon
-	--love.graphics.line(0, ground, love.graphics.getWidth(), ground)
-
 	-- draw player "sprites" and hitbox
 	love.graphics.rectangle("line", player.x, player.y, player.width, player.height)
 	player.collider:draw('fill')

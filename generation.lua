@@ -1,3 +1,26 @@
+function generate_building(player, worldspeed, previous_building)
+	local x = 0
+	if previous_building ~= nil then
+		x = previous_building.shape.position[1] + previous_building.shape.position[3]
+	end
+	
+	local floor = {}
+	local max_gap = worldspeed * 2/3
+	local min_gap = worldspeed * 1/3
+	local gap = math.random(min_gap, max_gap)
+	local min_building = love.window.getWidth()-gap
+	local max_building = min_building*2
+	local width = math.random(min_building, max_building)
+	
+	local y = 300
+	local height = 300
+	floor.shape = Collider:addRectangle(x+gap, y, width, height)
+	floor.shape.position = {x+gap, y, width, height}
+	floor.shape.type = "floor"
+	floor.shape.building = floor
+	return floor
+end	
+
 function generate_obstacles(player, worldspeed)
 	local type = math.random(1, 3)
 	if type == 1 then

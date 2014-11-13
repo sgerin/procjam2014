@@ -5,7 +5,6 @@ Gamestate = require "hump.gamestate"
 Timer = require "hump.timer"
 
 function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
-	--print("collision")
 	if shape_a == player.collider or shape_b == player.collider then
 		if shape_a.obstacle_type == "wall" or shape_b.obstacle_type == "wall" then
 			print("wall")
@@ -19,21 +18,31 @@ function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
 			--worldspeed = worldspeed * 2/3
 			--player.dir = -player.dir
 		end
-		if shape_a.obstacle_type == "floor" or shape_b.obstacle_type == "floor" then
+		if shape_a.type == "floor" or shape_b.type == "floor" then
+			local building = shape_a.building or shape_b.building
+	--print(building)
+			if building ~= current_building then 
+				print("changing building")
+				building_changed = true
+			end
+			current_building = building
 			player.can_jump = true
-			--worldspeed = worldspeed * 2/3
-			--player.dir = -player.dir
-		end
+			timer_start = nil
+			colliding_with_floor = true
+		end		
 	end
 end
 
 function collision_stop(dt, shape_a, shape_b)
-	print("collision stop")
+	if shape_a == player.collider or shape_b == player.collider then
+		if shape_a.type == "floor" or shape_b.type == "floor" then
+			colliding_with_floor = false
+		end
+	end
 end
 
 function love.keyreleased(key)
    if key == " " then
-	   print("cant jump")
 	   player.can_jump = false
    end
 end
@@ -44,13 +53,13 @@ function love.load()
     joystick = joysticks[1]
 	love.window.setMode(960, 320)
 	Collider = HC(100, on_collision, collision_stop)
+	math.randomseed(os.time())
 	
 	bg_scroll_factor = 0.15
 	mg_scroll_factor = 0.4
 	fg_scroll_factor = 1
     worldspeed = 100
 	worldacceleration = 50
-    --playerspeed = 100
     jumpspeed = 300
     ground = 300 -- height of ground
     gravity = 700
@@ -63,6 +72,7 @@ function love.load()
 		width = 24, 
 		dir = 1,
 		can_jump = true,
+		is_jumping = false
     }
 	player.collider = Collider:addRectangle(player.x+10, player.y+20, 12, 14)
 	
@@ -75,12 +85,25 @@ function love.load()
      end
 	 
 	 obstacles = {}
+	 buildings = {}
+	 buildings[1] = generate_building(player, worldspeed, nil)
+	 buildings[2] = generate_building(player, worldspeed, buildings[1])
+	 current_building = buildings[1]
+	 building_changed = false
+	 colliding_with_floor = true
 	 generation_timer = 0   
 end
 
 function love.update(dt)
     Timer.update(dt)
-	generation_timer = generation_timer+dt
+	
+	if building_changed then
+		buildings[#buildings+1] = generate_building(player, worldspeed, buildings[#buildings])
+		building_changed = false
+	end
+	
+	print(#buildings)
+	--generation_timer = generation_timer+dt
 	if generation_timer >= 1 then
 		generation_timer = generation_timer - 1
 		obstacle = generate_obstacles(player, worldspeed)
@@ -90,11 +113,14 @@ function love.update(dt)
     if player.v ~= 0 then -- if the player vertical velocity (which is negative when jumping) is different from zero then 
         player.v = player.v + (dt * gravity) -- we increase it (getting it to zero)
         player.y = player.y + (player.v * dt) -- and change the player vertical position (upward if player.v < 0 and downward otherwise)
-    end
-    if player.y > ground - player.r then -- put the player on ground if he's under it
-        player.y = ground - player.r
+	end
+	if colliding_with_floor and player.v > 0 then
+        player.y = ground
         player.v = 0
     end
+	if player.y > love.window.getHeight() then
+		print("falling")
+	end
 	
 	for i=1, #obstacles do
 		for j=1, obstacles[i].n do
@@ -103,6 +129,13 @@ function love.update(dt)
 			shape.position[1] = shape.position[1] - dt*worldspeed*player.dir
 			obstacles[i].shape[j] = shape
 		end
+	end
+	
+	for i=1, #buildings do
+		shape = buildings[i].shape
+		shape:move(-dt*worldspeed*player.dir, 0)
+		shape.position[1] = shape.position[1] - dt*worldspeed*player.dir
+		buildings[i].shape = shape
 	end
 	
 	Collider:update(dt)
@@ -123,11 +156,11 @@ function love.update(dt)
 		worldacceleration = 20
 	elseif worldspeed < 800 then 
 		worldacceleration = 10
+	elseif worldspeed > 800 then
+		worldacceleration = 0
 	end
 	
-	if worldspeed < 800 then
-		worldspeed = worldspeed + worldacceleration*dt
-	end
+	worldspeed = worldspeed + worldacceleration*dt
 	
 	local time = love.timer.getTime()
 	
@@ -139,6 +172,7 @@ function love.update(dt)
 				--print(timer_limit)
 			end
 			player.v = -jumpspeed
+			player.is_jumping = true
 		end
         --current_animation = jump_animation
 	end
@@ -157,7 +191,7 @@ end
 
 function love.draw()
 	-- draw horizon
-	love.graphics.line(0, ground, love.graphics.getWidth(), ground)
+	--love.graphics.line(0, ground, love.graphics.getWidth(), ground)
 
 	-- draw player "sprites" and hitbox
 	love.graphics.rectangle("line", player.x, player.y, player.width, player.height)
@@ -178,9 +212,13 @@ function love.draw()
 			local y = shape.position[2]
 			local w = shape.position[3]
 			local h = shape.position[4]
-			love.graphics.rectangle("fill", x, y, w, h)
-		    love.graphics.setColor(255, 255, 255)
+ 		    love.graphics.setColor(255, 255, 255)
 		end
+ 	end
+	
+ 	for i=1, #buildings do
+		shape = buildings[i].shape
+ 		shape:draw('line')
  	end
 	
 	-- draw game infos
